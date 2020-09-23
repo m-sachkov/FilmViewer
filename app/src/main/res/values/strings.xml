@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">FilmViewer</string>
+    <string name="no_name">No name</string>
 </resources>
