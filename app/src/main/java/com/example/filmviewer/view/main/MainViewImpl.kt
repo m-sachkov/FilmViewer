@@ -27,7 +27,14 @@ class MainViewImpl: Fragment(), MainView{
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         recyclerView = view.findViewById(R.id.recycler_view)
-        recyclerView.layoutManager = GridLayoutManager(context, 2)
+
+        val manager = GridLayoutManager(context, 2)
+        manager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                return if (position == 0) manager.spanCount else 1
+            }
+        }
+        recyclerView.layoutManager = manager
 
         presenter = MainPresenterImpl(this)
     }
