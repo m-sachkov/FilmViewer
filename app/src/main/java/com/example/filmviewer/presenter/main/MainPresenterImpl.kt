@@ -17,9 +17,12 @@ class MainPresenterImpl(val mainView: MainView): MainPresenter,
     private val adapter = MainAdapter()
 
     init {
-        mainView.setAdapter(adapter)
         adapter.subscribeOnGenreSelected(this)
         adapter.subscribeOnFilmSelected(this)
+    }
+
+    override fun onViewCreated() {
+        mainView.setAdapter(adapter)
         repository.getFilms()?.let {
             val sortedList = sortByLocalizedName(it.films)
             loadImagesFor(sortedList)
@@ -41,12 +44,14 @@ class MainPresenterImpl(val mainView: MainView): MainPresenter,
     private fun loadImagesFor(films: List<Film>) {
         Thread {
             films.forEach { film ->
-                try {
-                    film.image = Picasso.get().load(film.imageUrl).get()
-                }
-                catch (e: Exception) {}
-                mainView.executeOnUi{
-                    adapter.notifyItemChanged(films.indexOf(film))
+                if (film.image == null) {
+                    try {
+                        film.image = Picasso.get().load(film.imageUrl).get()
+                    } catch (e: Exception) {
+                    }
+                    mainView.executeOnUi {
+                        adapter.notifyItemChanged(films.indexOf(film))
+                    }
                 }
             }
         }.start()

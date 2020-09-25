@@ -1,7 +1,6 @@
 package com.example.filmviewer.view.info
 
 import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,7 +15,7 @@ import com.example.filmviewer.presenter.info.FilmInfoPresenter
 import com.example.filmviewer.presenter.info.FilmInfoPresenterImpl
 import kotlinx.android.synthetic.main.film_layout.view.*
 
-class FilmInfoFragmentImpl(private val bundle: Bundle): Fragment(), FilmInfoFragment {
+class FilmInfoFragmentImpl: Fragment(), FilmInfoFragment {
 
     private lateinit var localizedNameView: TextView
     private lateinit var nameView: TextView
@@ -25,7 +24,7 @@ class FilmInfoFragmentImpl(private val bundle: Bundle): Fragment(), FilmInfoFrag
     private lateinit var descriptionView: TextView
     private lateinit var imageView: ImageView
 
-    private lateinit var presenter: FilmInfoPresenter
+    private val presenter: FilmInfoPresenter = FilmInfoPresenterImpl(this)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,7 +43,7 @@ class FilmInfoFragmentImpl(private val bundle: Bundle): Fragment(), FilmInfoFrag
         descriptionView = view.inf_description
         imageView = view.inf_image
 
-        presenter = FilmInfoPresenterImpl(bundle, this)
+        presenter.onArgsSet(args)
     }
 
     override fun setLocalizedName(value: String?) {
@@ -73,5 +72,15 @@ class FilmInfoFragmentImpl(private val bundle: Bundle): Fragment(), FilmInfoFrag
 
     override fun loadResourceDrawable(id: Int)
             = ResourcesCompat.getDrawable(resources, R.drawable.placeholder, null)?.toBitmap()
+
+    companion object {
+        private var args: Bundle? = null
+
+        fun create(bundle: Bundle): FilmInfoFragmentImpl {
+            val fragment = FilmInfoFragmentImpl()
+            args = bundle
+            return fragment
+        }
+    }
 
 }

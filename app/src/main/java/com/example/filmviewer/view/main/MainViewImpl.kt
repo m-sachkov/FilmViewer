@@ -14,7 +14,7 @@ import com.example.filmviewer.view.info.FilmInfoFragmentImpl
 
 class MainViewImpl: Fragment(), MainView{
 
-    private lateinit var presenter: MainPresenter
+    private var presenter: MainPresenter = MainPresenterImpl(this)
     private lateinit var recyclerView: RecyclerView
 
     override fun onCreateView(
@@ -40,11 +40,12 @@ class MainViewImpl: Fragment(), MainView{
         }
         recyclerView.layoutManager = manager
 
-        presenter = MainPresenterImpl(this)
+        //presenter = MainPresenterImpl(this)
+        presenter.onViewCreated()
     }
 
     override fun setAdapter(adapter: MainAdapter) {
-        recyclerView.adapter = adapter
+        if (recyclerView.adapter == null) recyclerView.adapter = adapter
     }
 
     override fun executeOnUi(runnable: Runnable) {
@@ -54,7 +55,7 @@ class MainViewImpl: Fragment(), MainView{
     override fun openFilmInfoFragment(bundle: Bundle) {
         activity?.supportFragmentManager
             ?.beginTransaction()
-            ?.replace(R.id.fragment_container, FilmInfoFragmentImpl(bundle))
+            ?.replace(R.id.fragment_container, FilmInfoFragmentImpl.create(bundle), FilmInfoFragmentImpl.toString())
             ?.addToBackStack(null)
             ?.commit()
     }
