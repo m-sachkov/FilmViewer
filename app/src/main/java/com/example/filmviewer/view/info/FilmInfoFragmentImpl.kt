@@ -1,7 +1,6 @@
 package com.example.filmviewer.view.info
 
 import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +9,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.filmviewer.R
-import com.example.filmviewer.presenter.info.*
+import com.example.filmviewer.presenter.info.FilmInfoPresenter
+import com.example.filmviewer.presenter.info.FilmInfoPresenterImpl
 import kotlinx.android.synthetic.main.film_layout.view.*
 
 class FilmInfoFragmentImpl(private val bundle: Bundle): Fragment(), FilmInfoFragment {

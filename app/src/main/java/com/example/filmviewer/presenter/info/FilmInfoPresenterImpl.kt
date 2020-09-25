@@ -9,8 +9,13 @@ class FilmInfoPresenterImpl(bundle: Bundle?, fragment: FilmInfoFragment): FilmIn
     init {
         bundle?.let {
             fragment.apply {
-                setLocalizedName(it.getString(BUNDLE_LOCALIZED_NAME))
-                setName(it.getString(BUNDLE_NAME))
+                val localizedName = it.getString(BUNDLE_LOCALIZED_NAME)
+                val originalName = it.getString(BUNDLE_NAME)
+
+                if (!localizedName.equals(originalName)) {
+                    setName(originalName)
+                }
+                setLocalizedName(localizedName)
                 setYear(it.getString(BUNDLE_YEAR))
                 setRating(it.getString(BUNDLE_RATING))
                 setDescription(it.getString(BUNDLE_DESCRIPTION))
