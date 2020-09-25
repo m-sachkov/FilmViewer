@@ -15,13 +15,18 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private lateinit var films: List<Film>
     private lateinit var genres: Set<String>
-    private lateinit var genreSelectedListener: GenreSelectedListener
+    private var genreSelectionListener: GenreSelectionListener? = null
+    private var filmSelectionListener: FilmSelectionListener? = null
     private var updateHeader = true
     private val TYPE_GENRES = 0
     private val TYPE_FILMS = 1
 
-    interface GenreSelectedListener {
+    interface GenreSelectionListener {
         fun onGenreSelected(genre: String)
+    }
+
+    interface FilmSelectionListener {
+        fun onFilmSelected(film: Film)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -32,11 +37,15 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                     .inflate(R.layout.list_genres, parent, false) as ViewGroup
             )
         }
-        return FilmsViewHolder(
+        val filmsHolder = FilmsViewHolder(
             LayoutInflater
                 .from(parent.context)
                 .inflate(R.layout.list_item, parent, false)
         )
+        filmsHolder.itemView.setOnClickListener {
+            filmSelectionListener?.onFilmSelected(films[filmsHolder.adapterPosition - 1])
+        }
+        return filmsHolder
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -72,8 +81,12 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         notifyItemChanged(0)
     }
 
-    fun subscribeOnGenreSelected(listener: GenreSelectedListener) {
-        genreSelectedListener = listener
+    fun subscribeOnGenreSelected(listener: GenreSelectionListener) {
+        genreSelectionListener = listener
+    }
+
+    fun subscribeOnFilmSelected(listener: FilmSelectionListener) {
+        filmSelectionListener = listener
     }
 
     inner class GenresViewHolder(val view: ViewGroup): RecyclerView.ViewHolder(view) {
@@ -113,12 +126,12 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             button.setOnCheckedChangeListener { buttonView, _ ->
                 if (lastSelectedGenreView == buttonView) {
                     lastSelectedGenreView = null
-                    genreSelectedListener.onGenreSelected("")
+                    genreSelectionListener?.onGenreSelected("")
                 }
                 else {
                     lastSelectedGenreView?.isChecked = false
                     lastSelectedGenreView = buttonView
-                    genreSelectedListener.onGenreSelected(text)
+                    genreSelectionListener?.onGenreSelected(text)
                 }
             }
             return button

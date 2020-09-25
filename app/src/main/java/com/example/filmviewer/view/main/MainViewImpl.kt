@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.filmviewer.R
 import com.example.filmviewer.presenter.main.MainPresenter
 import com.example.filmviewer.presenter.main.MainPresenterImpl
+import com.example.filmviewer.view.info.FilmInfoFragmentImpl
 
 class MainViewImpl: Fragment(), MainView{
 
@@ -45,6 +46,14 @@ class MainViewImpl: Fragment(), MainView{
 
     override fun executeOnUi(runnable: Runnable) {
         activity?.runOnUiThread { runnable.run() }
+    }
+
+    override fun openFilmInfoFragment(bundle: Bundle) {
+        activity?.supportFragmentManager
+            ?.beginTransaction()
+            ?.replace(R.id.fragment_container, FilmInfoFragmentImpl(bundle))
+            ?.addToBackStack(null)
+            ?.commit()
     }
 
 }
