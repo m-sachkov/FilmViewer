@@ -32,7 +32,10 @@ class MainViewImpl: Fragment(), MainView{
         val manager = GridLayoutManager(context, 2)
         manager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
-                return if (position == 0) manager.spanCount else 1
+                return when(position) {
+                    0,1,2 -> manager.spanCount
+                    else -> 1
+                }
             }
         }
         recyclerView.layoutManager = manager

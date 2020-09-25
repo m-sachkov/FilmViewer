@@ -1,6 +1,9 @@
 package com.example.filmviewer.view.main
 
 import android.content.Context
+import android.text.Layout
+import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.filmviewer.R
 import com.example.filmviewer.model.pojo.Film
 import kotlinx.android.synthetic.main.list_item.view.*
+import org.w3c.dom.Text
 
 class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -18,8 +22,12 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private var genreSelectionListener: GenreSelectionListener? = null
     private var filmSelectionListener: FilmSelectionListener? = null
     private var updateHeader = true
-    private val TYPE_GENRES = 0
-    private val TYPE_FILMS = 1
+
+    enum class TYPE(val value: Int) {
+        GENRES(0),
+        GENRES_HEADER(1),
+        FILMS_HEADER(2)
+    }
 
     interface GenreSelectionListener {
         fun onGenreSelected(genre: String)
@@ -30,43 +38,45 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        if (viewType == TYPE_GENRES) {
-            return GenresViewHolder(
+        return when (viewType) {
+            TYPE.GENRES_HEADER.value -> HeaderViewHolder.from(parent,"ЖАНРЫ")
+            TYPE.GENRES.value -> GenresViewHolder(
                 LayoutInflater
                     .from(parent.context)
-                    .inflate(R.layout.list_genres, parent, false) as ViewGroup
-            )
-        }
-        val filmsHolder = FilmsViewHolder(
-            LayoutInflater
-                .from(parent.context)
-                .inflate(R.layout.list_item, parent, false)
-        )
-        filmsHolder.itemView.setOnClickListener {
-            filmSelectionListener?.onFilmSelected(films[filmsHolder.adapterPosition - 1])
-        }
-        return filmsHolder
-    }
-
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if (holder is FilmsViewHolder) {
-            holder.bind(films[position - 1])
-        }
-        else if (holder is GenresViewHolder){
-            if (updateHeader) {
-                holder.bind(genres)
+                    .inflate(R.layout.list_genres, parent, false) as ViewGroup)
+            TYPE.FILMS_HEADER.value -> HeaderViewHolder.from(parent,"ФИЛЬМЫ")
+            else -> {
+                val filmsHolder = FilmsViewHolder(
+                    LayoutInflater
+                        .from(parent.context)
+                        .inflate(R.layout.list_item, parent, false)
+                )
+                filmsHolder.itemView.setOnClickListener {
+                    filmSelectionListener?.onFilmSelected(
+                        films[filmsHolder.adapterPosition - TYPE.values().size]
+                    )
+                }
+                return filmsHolder
             }
         }
     }
 
-    // list of films + header with genres
-    override fun getItemCount() = films.size + 1
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (holder) {
+            is FilmsViewHolder -> holder.bind(films[position - TYPE.values().size])
+            is GenresViewHolder -> if (updateHeader) holder.bind(genres)
+        }
+    }
+
+    override fun getItemCount() = films.size + TYPE.values().size
 
     override fun getItemViewType(position: Int): Int {
-        if (position == 0) {
-            return TYPE_GENRES
+        return when (position) {
+            0 -> TYPE.GENRES_HEADER.value
+            1 -> TYPE.GENRES.value
+            2 -> TYPE.FILMS_HEADER.value
+            else -> 3
         }
-        return TYPE_FILMS
     }
 
     fun setFilmsList(films: List<Film>) {
@@ -87,6 +97,21 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     fun subscribeOnFilmSelected(listener: FilmSelectionListener) {
         filmSelectionListener = listener
+    }
+
+    class HeaderViewHolder(view: View): RecyclerView.ViewHolder(view) {
+        companion object {
+            fun from (parent: ViewGroup, header: String): HeaderViewHolder {
+                val view =
+                    LayoutInflater
+                    .from(parent.context)
+                    .inflate(R.layout.list_header, parent, false)
+                if (view is TextView) {
+                    view.text = header
+                }
+                return HeaderViewHolder(view)
+            }
+        }
     }
 
     inner class GenresViewHolder(val view: ViewGroup): RecyclerView.ViewHolder(view) {
