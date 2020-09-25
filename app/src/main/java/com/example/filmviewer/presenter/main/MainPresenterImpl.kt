@@ -1,15 +1,12 @@
 package com.example.filmviewer.presenter.main
 
-import android.graphics.Bitmap
 import android.os.Bundle
-import android.util.Log
 import com.example.filmviewer.model.Repository
 import com.example.filmviewer.model.pojo.Film
 import com.example.filmviewer.utils.*
 import com.example.filmviewer.view.main.MainAdapter
 import com.example.filmviewer.view.main.MainView
 import com.squareup.picasso.Picasso
-import java.io.ByteArrayOutputStream
 import java.util.*
 import kotlin.collections.HashSet
 
@@ -24,9 +21,10 @@ class MainPresenterImpl(val mainView: MainView): MainPresenter,
         adapter.subscribeOnGenreSelected(this)
         adapter.subscribeOnFilmSelected(this)
         repository.getFilms()?.let {
-            loadImagesFor(it.films)
-            adapter.setFilmsList(it.films)
-            adapter.setFilmsGenres(getGenresSet(it.films))
+            val sortedList = sortByLocalizedName(it.films)
+            loadImagesFor(sortedList)
+            adapter.setFilmsList(sortedList)
+            adapter.setFilmsGenres(getGenresSet(sortedList))
         }
     }
 
@@ -56,20 +54,25 @@ class MainPresenterImpl(val mainView: MainView): MainPresenter,
 
     override fun onGenreSelected(genre: String) {
         if (genre.isEmpty()) {
-            repository.getFilms()?.films?.let { adapter.setFilmsList(it) }
+            repository.getFilms()?.films?.let {
+                adapter.setFilmsList(sortByLocalizedName(it))
+            }
         }
         else {
-            val sortedList = LinkedList<Film>()
+            val incompleteList = LinkedList<Film>()
             repository.getFilms()?.films.let { films ->
                 films?.forEach {
                     if (it.genres.contains(genre)) {
-                        sortedList.add(it)
+                        incompleteList.add(it)
                     }
                 }
             }
-            adapter.setFilmsList(sortedList)
+            adapter.setFilmsList(
+                sortByLocalizedName(incompleteList))
         }
     }
+
+    private fun sortByLocalizedName(data: List<Film>) = data.sortedBy { it.localizedName }
 
     override fun onFilmSelected(film: Film) {
         val bundle = Bundle().apply {
