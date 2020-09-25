@@ -1,9 +1,6 @@
 package com.example.filmviewer.view.main
 
 import android.content.Context
-import android.text.Layout
-import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.filmviewer.R
 import com.example.filmviewer.model.pojo.Film
 import kotlinx.android.synthetic.main.list_item.view.*
-import org.w3c.dom.Text
 
 class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -21,11 +17,10 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private lateinit var genres: Set<String>
     private var genreSelectionListener: GenreSelectionListener? = null
     private var filmSelectionListener: FilmSelectionListener? = null
-    private var updateHeader = true
 
     enum class TYPE(val value: Int) {
-        GENRES(0),
-        GENRES_HEADER(1),
+        GENRES_HEADER(0),
+        GENRES(1),
         FILMS_HEADER(2)
     }
 
@@ -64,7 +59,7 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
             is FilmsViewHolder -> holder.bind(films[position - TYPE.values().size])
-            is GenresViewHolder -> if (updateHeader) holder.bind(genres)
+            is GenresViewHolder -> holder.bind(genres)
         }
     }
 
@@ -81,14 +76,16 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     fun setFilmsList(films: List<Film>) {
         this.films = films
-        updateHeader = false
         notifyDataSetChanged()
     }
 
     fun setFilmsGenres(genres: Set<String>) {
         this.genres = genres
-        updateHeader = true
-        notifyItemChanged(0)
+        notifyItemChanged(TYPE.GENRES.value)
+    }
+
+    fun refreshElementAt(position: Int) {
+        notifyItemChanged(position + TYPE.values().size)
     }
 
     fun subscribeOnGenreSelected(listener: GenreSelectionListener) {
@@ -114,9 +111,11 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
     }
 
-    inner class GenresViewHolder(val view: ViewGroup): RecyclerView.ViewHolder(view) {
+    companion object {
+        var lastSelectedGenre: String = ""
+    }
 
-        private var lastSelectedGenreView: CompoundButton? = null
+    inner class GenresViewHolder(val view: ViewGroup): RecyclerView.ViewHolder(view) {
 
         fun bind(genres: Set<String>) {
             val tableLayout = view as TableLayout
@@ -125,8 +124,11 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             val columnsCount = 3
             var currentColumn = 1
             var tableRow = TableRow(tableLayout.context)
+
+            //Создаем таблицу из кнопок размером в три колонки
             for (genre in genres) {
-                tableRow.addView(createButton(tableLayout.context, genre))
+                val button= createButton(tableLayout.context, genre, lastSelectedGenre == genre)
+                tableRow.addView(button)
                 if (currentColumn == columnsCount || genres.indexOf(genre) == genres.size - 1) {
                     currentColumn = 1
                     tableLayout.addView(tableRow)
@@ -138,7 +140,7 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             }
         }
 
-        private fun createButton(context : Context, text: String): Button {
+        private fun createButton(context : Context, text: String, isChecked: Boolean = false): ToggleButton {
             val button = ToggleButton(context).apply {
                 this.text = text
                 textOff = text
@@ -147,17 +149,13 @@ class MainAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 isAllCaps = false
                 background = ContextCompat.getDrawable(context, R.drawable.toggle_btn_selector)
                 setTextColor(ContextCompat.getColorStateList(context, R.color.btn_text_toggle))
+                this.isChecked = isChecked
             }
             button.setOnCheckedChangeListener { buttonView, _ ->
-                if (lastSelectedGenreView == buttonView) {
-                    lastSelectedGenreView = null
-                    genreSelectionListener?.onGenreSelected("")
-                }
-                else {
-                    lastSelectedGenreView?.isChecked = false
-                    lastSelectedGenreView = buttonView
-                    genreSelectionListener?.onGenreSelected(text)
-                }
+                lastSelectedGenre =
+                    if (lastSelectedGenre == buttonView.text) ""
+                    else buttonView.text.toString()
+                genreSelectionListener?.onGenreSelected(lastSelectedGenre)
             }
             return button
         }

@@ -24,10 +24,11 @@ class MainPresenterImpl(val mainView: MainView): MainPresenter,
     override fun onViewCreated() {
         mainView.setAdapter(adapter)
         repository.getFilms()?.let {
-            val sortedList = sortByLocalizedName(it.films)
+            val sortedList =
+                sortByLocalizedName(sortByGenre(it.films, MainAdapter.lastSelectedGenre))
             loadImagesFor(sortedList)
             adapter.setFilmsList(sortedList)
-            adapter.setFilmsGenres(getGenresSet(sortedList))
+            adapter.setFilmsGenres(getGenresSet(it.films))
         }
     }
 
@@ -47,33 +48,39 @@ class MainPresenterImpl(val mainView: MainView): MainPresenter,
                 if (film.image == null) {
                     try {
                         film.image = Picasso.get().load(film.imageUrl).get()
+                        mainView.executeOnUi {
+                            adapter.refreshElementAt(films.indexOf(film))
+                        }
                     } catch (e: Exception) {
-                    }
-                    mainView.executeOnUi {
-                        adapter.notifyItemChanged(films.indexOf(film))
                     }
                 }
             }
         }.start()
     }
 
-    override fun onGenreSelected(genre: String) {
+    private fun sortByGenre(films: List<Film>, genre: String): List<Film> {
         if (genre.isEmpty()) {
-            repository.getFilms()?.films?.let {
-                adapter.setFilmsList(sortByLocalizedName(it))
+            return films
+        }
+        val result = LinkedList<Film>()
+        films.forEach {
+            if (it.genres.contains(genre)) {
+                result.add(it)
             }
         }
-        else {
-            val incompleteList = LinkedList<Film>()
-            repository.getFilms()?.films.let { films ->
-                films?.forEach {
-                    if (it.genres.contains(genre)) {
-                        incompleteList.add(it)
-                    }
-                }
+        return result
+    }
+
+    override fun onGenreSelected(genre: String) {
+        repository.getFilms()?.films?.let { films->
+            if (genre.isEmpty()) {
+                adapter.setFilmsList(sortByLocalizedName(films))
             }
-            adapter.setFilmsList(
-                sortByLocalizedName(incompleteList))
+            else {
+                val incompleteList = sortByGenre(films, genre)
+                adapter.setFilmsList(
+                    sortByLocalizedName(incompleteList))
+            }
         }
     }
 
