@@ -10,5 +10,5 @@ fun toByteArray(bitmap: Bitmap?): ByteArray {
     return stream.toByteArray()
 }
 
-fun fromByteArray(byteArray: ByteArray): Bitmap
-        = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+fun fromByteArray(byteArray: ByteArray?): Bitmap?
+        = byteArray?.let{ BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)}

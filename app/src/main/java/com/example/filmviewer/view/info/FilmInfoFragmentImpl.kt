@@ -1,12 +1,15 @@
 package com.example.filmviewer.view.info
 
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import com.example.filmviewer.R
 import com.example.filmviewer.presenter.info.FilmInfoPresenter
@@ -64,7 +67,11 @@ class FilmInfoFragmentImpl(private val bundle: Bundle): Fragment(), FilmInfoFrag
         descriptionView.text = value
     }
 
-    override fun setImage(bitmap: Bitmap) {
+    override fun setImage(bitmap: Bitmap?) {
         imageView.setImageBitmap(bitmap)
     }
+
+    override fun loadResourceDrawable(id: Int)
+            = ResourcesCompat.getDrawable(resources, R.drawable.placeholder, null)?.toBitmap()
+
 }
