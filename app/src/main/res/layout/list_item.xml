@@ -27,6 +27,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="10dp"
         android:maxLines="2"
+        android:ellipsize="end"
         android:text="@string/no_name"
         app:layout_constraintEnd_toEndOf="@+id/list_film_image"
         app:layout_constraintStart_toStartOf="@+id/list_film_image"
